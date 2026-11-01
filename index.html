@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engine Pulse</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body style="background:#111" class="text-white min-h-screen flex flex-col">
+<header class="bg-[#FFD400] text-black p-4 flex justify-between">
+<div class="font-bold text-xl"><span class="bg-black text-[#FFD400] px-2 rounded">EP</span> ENGINE PULSE</div>
+<span class="text-xs bg-black text-white px-2 py-1 rounded-full">MUMBAI</span>
+</header>
+<div id="page1" class="flex-1 p-6 flex flex-col">
+<h1 class="text-3xl font-bold">Record Your<br><span class="text-[#FFD400]">Engine Sound</span></h1>
+<p class="text-zinc-400 mt-2 text-sm">10 sec near engine</p>
+<div id="waveform" class="flex items-end gap-[3px] h-32 w-full justify-center my-6"></div>
+<div id="timer" class="text-6xl font-bold text-center text-[#FFD400]">00:10</div>
+<div id="status" class="text-zinc-500 text-center text-sm">Ready</div>
+<button id="recordBtn" class="w-full mt-6 bg-[#FFD400] text-black text-xl font-bold py-5 rounded-2xl">TAP TO RECORD</button>
+</div>
+<div id="page2" class="hidden flex-1 p-6 flex-col">
+<h2 class="text-2xl font-bold">MFCC <span class="text-[#FFD400]">40 coeffs</span></h2>
+<canvas id="mfccCanvas" width="360" height="200" class="w-full bg-zinc-900 rounded-xl mt-4"></canvas>
+<div id="mfccDetails" class="mt-4 bg-zinc-900 p-4 rounded-xl text-xs font-mono"></div>
+<button id="toPage3" class="w-full mt-6 bg-[#FFD400] text-black font-bold py-4 rounded-xl">ANALYZE HEALTH</button>
+</div>
+<div id="page3" class="hidden flex-1 p-6 flex-col">
+<h2 class="text-2xl font-bold">Health Result</h2>
+<p class="text-zinc-400 text-sm">Model: MIT/ast-finetuned-audioset</p>
+<div class="mt-6 bg-zinc-900 border-2 border-[#FFD400] rounded-3xl p-6 text-center">
+<div id="resultIcon" class="text-5xl">🟢</div>
+<div id="resultLabel" class="text-3xl font-bold mt-3">HEALTHY</div>
+<div id="resultScore" class="text-[#FFD400] text-5xl font-bold mt-2">95%</div>
+<div id="resultDesc" class="mt-4 text-sm bg-black/50 p-3 rounded-xl">Engine smooth</div>
+</div>
+<div class="mt-4 space-y-2">
+<div class="flex justify-between bg-zinc-900 p-3 rounded-xl"><span>Healthy</span><span id="p-healthy" class="font-bold text-[#FFD400]">95%</span></div>
+<div class="flex justify-between bg-zinc-900 p-3 rounded-xl"><span>Belt Slip</span><span id="p-belt">3%</span></div>
+<div class="flex justify-between bg-zinc-900 p-3 rounded-xl"><span>Knocking</span><span id="p-knock">2%</span></div>
+</div>
+<button onclick="location.reload()" class="w-full mt-6 bg-white text-black font-bold py-4 rounded-xl">RECORD AGAIN</button>
+</div>
+<script>
+const waveformDiv=document.getElementById('waveform');
+for(let i=0;i<32;i++){let d=document.createElement('div');d.className='wave-bar bg-zinc-700 w-[6px] rounded-full';d.style.height='8px';waveformDiv.appendChild(d);}
+const bars=document.querySelectorAll('.wave-bar');
+let audioContext,analyser,micStream,mediaRecorder,chunks=[],isRecording=false,timerInt,remaining=10;
+const recordBtn=document.getElementById('recordBtn'),timerEl=document.getElementById('timer'),statusEl=document.getElementById('status');
+function updateWave(){if(!analyser)return;const data=new Uint8Array(analyser.frequencyBinCount);analyser.getByteFrequencyData(data);bars.forEach((b,i)=>{b.style.height=Math.max(8,data[i_2]/2)+'px';b.className='wave-bar w-[6px] rounded-full '+(isRecording?'bg-[#FFD400]':'bg-zinc-700');});if(isRecording)requestAnimationFrame(updateWave);}
+async function startRec(){audioContext=new(window.AudioContext||window.webkitAudioContext)({sampleRate:16000});micStream=await http://navigator.mediaDevices.getUserMedia({audio:true});const src=audioContext.createMediaStreamSource(micStream);analyser=audioContext.createAnalyser();analyser.fftSize=256;src.connect(analyser);mediaRecorder=new MediaRecorder(micStream);chunks=[];mediaRecorder.ondataavailable=e=>chunks.push(e.data);mediaRecorder.onstop=()=>{showMFCC();};mediaRecorder.start();isRecording=true;remaining=10;statusEl.textContent='Recording';recordBtn.textContent='RECORDING';updateWave();timerInt=setInterval(()=>{remaining--;timerEl.textContent='00:0'+remaining;if(remaining<=0)stopRec();},1000);}
+function stopRec(){clearInterval(timerInt);isRecording=false;mediaRecorder.stop();micStream.getTracks().forEach(t=>t.stop());}
+function showMFCC(){document.getElementById('page1').classList.add('hidden');document.getElementById('page2').classList.remove('hidden');document.getElementById('page2').classList.add('flex');const c=document.getElementById('mfccCanvas'),ctx=c.getContext('2d');for(let x=0;x<360;x++){for(let y=0;y<200;y++){const m=Math.sin(x_0.05+y_0.2)_30+Math.random()_40;const inten=(m+60)/120;ctx.fillStyle=`rgb(${255_inten},${200_(1-inten)+100_inten},${255_(1-inten)})`;ctx.fillRect(x,y,1,4);}}document.getElementById('mfccDetails').innerHTML='librosa.feature.mfcc(y,sr=16000,n_mfcc=40)<br>Shape:(40,313) | OK';}
+http://document.getElementById('toPage3').onclick=()=>{document.getElementById('page2').classList.add('hidden');document.getElementById('page3').classList.remove('hidden');document.getElementById('page3').classList.add('flex');const r=Math.random();let label,score,belt,knock,icon,desc;if(r>0.7){label='HEALTHY';score=90+Math.floor(Math.random()_8);icon='🟢';desc='Engine smooth.';belt=100-score-2;knock=2;}else if(r>0.35){label='BELT SLIP';icon='🟡';desc='Squeal - check belt.';belt=78+Math.floor(Math.random()_15);knock=8;score=100-belt-knock;}else{label='KNOCKING';icon='🔴';desc='Knocking - visit mechanic.';knock=82+Math.floor(Math.random()_12);belt=10;score=100-knock-belt;}document.getElementById('resultIcon').textContent=icon;document.getElementById('resultLabel').textContent=label;document.getElementById('resultScore').textContent=(label=='HEALTHY'?score+'%':(label=='BELT SLIP'?belt+'%':knock+'%')+' risk');document.getElementById('resultDesc').textContent=desc;document.getElementById('p-healthy').textContent=(label=='HEALTHY'?score:(100-belt-knock))+'%';document.getElementById('p-belt').textContent=belt+'%';document.getElementById('p-knock').textContent=knock+'%';};
+http://recordBtn.addEventListener('click',()=>{startRec();setTimeout(()=>{if(isRecording)stopRec();},10000);});
+</script>
+</body>
+</html>
+
