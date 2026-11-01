@@ -1,4 +1,5 @@
-`{"short_name":"EnginePulse",2 "name":"The Engine Pulse"
+`{"short_name":"EnginePulse",
+  "name":"The Engine Pulse"
   ,"icons":[{"src":"icon-512.png",
     "sizes":"512x512",
     "type":"image/png"}],
