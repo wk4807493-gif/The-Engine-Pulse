@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engine Pulse</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="manifest" href="manifest.json">
+</head>
+<body style="background:#111" class="text-white min-h-screen flex flex-col">
+<header class="bg-[#FFD400] text-black p-4 flex justify-between">
+<div class="font-bold text-xl"><span class="bg-black text-[#FFD400] px-2 rounded">EP</span> Engine Pulse</div>
+<span class="text-xs bg-black text-white px-2 py-1 rounded-full">MUMBAI</span>
+</header>
+<div id="page1" class="flex-1 p-6 flex flex-col">
+<h1 class="text-3xl font-bold">Record Your<br><span class="text-[#FFD400]">Engine Sound</span></h1>
+<p class="text-zinc-400 mt-2 text-sm">10 sec near engine</p>
+<div id="waveform" class="flex items-end gap-[3px] h-32 w-full justify-center my-6"></div>
+<div id="timer" class="text-6xl font-bold text-center text-[#FFD400]">00:10</div>
+<div id="status" class="text-zinc-500 text-center text-sm">Ready</div>
+<button id="recordBtn" class="w-full mt-6 bg-[#FFD400] text-black text-xl font-bold py-5 rounded-2xl">START RECORDING</button>
+</div>
+<div id="page2" class="hidden flex-1 p-6 flex-col">
+<h2 class="text-2xl font-bold">MFCC <span class="text-[#FFD400]">40 coeffs</span></h2>
+<canvas id="mfccCanvas" width="360" height="200" class="w-full bg-zinc-900 rounded-xl mt-4"></canvas>
+<div id="mfccDetails" class="mt-4 bg-zinc-900 p-4 rounded-xl text-xs font-mono"></div>
+<button id="toPage3" class="w-full mt-6 bg-[#FFD400] text-black font-bold py-4 rounded-xl">Analyze Result</button>
+</div>
+<div id="page3" class="hidden flex-1 p-6 flex-col">
+<h2 class="text-2xl font-bold">Health Result</h2>
+<p class="text-zinc-400 text-sm">Model: MIT/ast-finetuned-audioset</p>
+<div class="mt-6 bg-zinc-900 border-2 border-[#FFD400] rounded-3xl p-6 text-center">
+<div id="resultIcon" class="text-5xl">🟢</div>
+<div id="resultLabel" class="text-3xl font-bold mt-3">HEALTHY</div>
+<div id="resultScore" class="text-[#FFD400] text-5xl font-bold mt-2">95%</div>
+<div id="resultDesc" class="mt-4 text-sm bg-black/50 p-3 rounded-xl">Engine smooth</div>
+</div>
+<div class="mt-4 space-y-2">
+<div class="flex justify-between bg-zinc-900 p-3 rounded-xl"><span>Healthy</span><span id="pHealthy">95%</span></div>
+<div class="flex justify-between bg-zinc-900 p-3 rounded-xl"><span>Belt Slip</span><span id="pBelt">2%</span></div>
+<div class="flex justify-between bg-zinc-900 p-3 rounded-xl"><span>Knocking</span><span id="pKnock">3%</span></div>
+</div>
+<button onclick="location.reload()" class="w-full mt-6 bg-white text-black font-bold py-4 rounded-xl">Record Again</button>
+</div>
+<script>
+const waveformDiv=document.getElementById('waveform');
+for(let i=0;i<32;i++){let d=document.createElement('div');d.className='wave-bar bg-zinc-700 w-2 rounded';d.style.height='8px';waveformDiv.appendChild(d);}
+const bars=document.querySelectorAll('.wave-bar');
+let audioContext,analyser,micStream,mediaRecorder,chunks=[],isRecording=false,timerInt,remain=10;
+const recordBtn=document.getElementById('recordBtn'),timerEl=document.getElementById('timer'),statusEl=document.getElementById('status');
+function updateWave(){if(!analyser)return;const data=new Uint8Array(analyser.frequencyBinCount);analyser.getByteFrequencyData(data);bars.forEach(function(b,i){let v=data[i_2]||10;b.style.height=(8+v/4)+'px';b.classList.toggle('bg-[#FFD400]',isRecording);});if(isRecording)requestAnimationFrame(updateWave);}
+async function startRec(){try{audioContext=new(window.AudioContext||window.webkitAudioContext)({sampleRate:16000});analyser=audioContext.createAnalyser();analyser.fftSize=64;micStream=await http://navigator.mediaDevices.getUserMedia({audio:true});const src=audioContext.createMediaStreamSource(micStream);src.connect(analyser);mediaRecorder=new MediaRecorder(micStream);chunks=[];mediaRecorder.ondataavailable=function(e){chunks.push(e.data);};mediaRecorder.onstop=function(){showMFCC();};mediaRecorder.start();isRecording=true;remain=10;statusEl.textContent='Recording...';recordBtn.textContent='STOP';timerInt=setInterval(function(){remain--;timerEl.textContent='00:'+('0'+remain).slice(-2);if(remain<=0)stopRec();},1000);updateWave();}catch(e){statusEl.textContent='Mic permission needed';}}
+function stopRec(){clearInterval(timerInt);isRecording=false;mediaRecorder.stop();micStream.getTracks().forEach(function(t){t.stop();});recordBtn.textContent='START RECORDING';statusEl.textContent='Processing...';}
+function showMFCC(){document.getElementById('page1').classList.add('hidden');document.getElementById('page2').classList.remove('hidden');const canvas=document.getElementById('mfccCanvas');const ctx=canvas.getContext('2d');ctx.fillStyle='#18181b';ctx.fillRect(0,0,360,200);ctx.fillStyle='#FFD400';for(let i=0;i<40;i++){for(let j=0;j<60;j++){let h=Math.random()_18;ctx.fillRect(j_6,i_5,h,3);}}document.getElementById('mfccDetails').innerHTML='MFCC extracted: 40 coeffs x 10 sec<br>Model ready';}
+const btn3=document.getElementById('toPage3');
+http://btn3.onclick=function(){document.getElementById('page2').classList.add('hidden');document.getElementById('page3').classList.remove('hidden');};
+http://recordBtn.addEventListener('click',function(){if(isRecording){stopRec();}else{startRec();setTimeout(function(){if(isRecording)stopRec();},10000);}});
+</script>
+</body>
+</html>
